@@ -1,0 +1,1 @@
+C:\Users\Sultan\ Mansiz\Documents\CODE\KULIAH-CODE\FOURTH\ADPRO\advprog_modul6\target\debug\advprog_modul6.exe: C:\Users\Sultan\ Mansiz\Documents\CODE\KULIAH-CODE\FOURTH\ADPRO\advprog_modul6\src\main.rs
