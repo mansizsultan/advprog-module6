@@ -4,6 +4,14 @@
 | ------------------ | ---------- | ------------- |
 | Sultan Ibnu Mansiz | 2306275840 | B             |
 
+## Table of Contents
+* [Reflection 1: Single Threaded Web Server](#reflection-1-single-threaded-web-server)
+* [Reflection 2: Returning HTML](#reflection-2-returning-html)
+* [Reflection 3: Validating Request and Selectively Responding](#reflection-3-validating-request-and-selectively-responding)
+* [Reflection 4: Simulation Slow Response](#reflection-4-simulation-slow-response)
+* [Reflection 5: Multithreaded Server](#reflection-5-multithreaded-server)
+* [Bonus Reflection: Function Improvement](#bonus-reflection-function-improvement)
+
 ## Reflection 1: Single Threaded Web Server
 ### **1. Setting Up a TCP Server**
 
@@ -244,7 +252,7 @@ A **Worker** retrieves a task from the **receiver** using `receiver.lock().unwra
 
 By implementing this system, the **ThreadPool** allows the server to process multiple requests simultaneously without the overhead of constantly creating and destroying threads. This improves efficiency and scalability, as the server no longer needs to wait for one request to complete before handling the next. Additionally, reusing existing threads prevents excessive resource consumption and ensures that the server remains responsive under heavy load. By limiting the number of active threads, the **ThreadPool** also helps prevent server overload when dealing with a high volume of incoming requests.
 
-## Bonus Reflection: Function Improvement.
+## Bonus Reflection: Function Improvement
 In this milestone, I've improved the **ThreadPool** implementation by introducing a `build` function, providing better error handling and flexibility when creating a thread pool. This follows Rust's best practices and enhances reliability.  
 
 #### **Key Enhancements:**  
