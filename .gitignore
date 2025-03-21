@@ -1,0 +1,25 @@
+# Direktori target berisi file hasil build
+/target
+
+# File Cargo.lock diperlukan untuk proyek pustaka, tetapi diabaikan untuk binari
+# Karena lockfile mungkin berisi versi dependensi tetap
+Cargo.lock
+
+# Editor dan alat spesifik
+*.rs.bk
+*.swp
+*.swo
+
+# File sementara dari sistem operasi
+.DS_Store
+Thumbs.db
+
+# File log atau debug
+*.log
+
+# Hasil testing
+*.test-result
+
+# Profil debugging dan output cache
+debug.log
+*.profraw
