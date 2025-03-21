@@ -224,3 +224,22 @@ Now, if we request `http://127.0.0.1:7878/sleep`, the server pauses for **10 sec
 ### **Solution?**  
 
 To make the server **more efficient**, we need to implement **multi-threading** so that multiple requests can be processed **concurrently**, preventing one slow request from affecting others.
+
+## Reflection 5: Multithreaded Server
+At this stage, we have transformed the web server from **single-threaded** to **multi-threaded** using a **ThreadPool**. The main goal of this implementation is to allow the server to handle multiple requests in parallel without creating a new thread for each incoming request.  
+
+### **How ThreadPool Works**  
+
+#### **1. Initializing the ThreadPool**  
+When `ThreadPool::new(size)` is called, a fixed number of **Worker** threads are created based on the specified `size`. Each **Worker** has a unique ID and an associated thread that remains idle until a task is assigned by the **ThreadPool**.  
+
+#### **2. Using a Channel for Communication**  
+To facilitate communication between the **ThreadPool** and **Workers**, an **mpsc channel** (`mpsc::channel()`) is used. The **sender** is stored in the **ThreadPool** to dispatch tasks, while the **receiver** is shared among all **Workers** via `Arc<Mutex<mpsc::Receiver<Job>>>`. This ensures that multiple **Workers** can access the task queue safely without causing race conditions.  
+
+#### **3. Executing Tasks with `execute(f)`**  
+When the server receives a request, the `execute(f)` function is called with a **closure** representing the task. This closure is then wrapped in a `Box<Job>` and sent through the **channel** to be picked up by an available **Worker**.  
+
+#### **4. Workers Processing Tasks**  
+A **Worker** retrieves a task from the **receiver** using `receiver.lock().unwrap().recv().unwrap()`, ensuring that only one **Worker** picks up a task at a time. Once the task is received, the **Worker** executes the closure and then waits for the next task.  
+
+By implementing this system, the **ThreadPool** allows the server to process multiple requests simultaneously without the overhead of constantly creating and destroying threads. This improves efficiency and scalability, as the server no longer needs to wait for one request to complete before handling the next. Additionally, reusing existing threads prevents excessive resource consumption and ensures that the server remains responsive under heavy load. By limiting the number of active threads, the **ThreadPool** also helps prevent server overload when dealing with a high volume of incoming requests.
