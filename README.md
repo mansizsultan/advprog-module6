@@ -5,7 +5,7 @@
 | Sultan Ibnu Mansiz | 2306275840 | B             |
 
 ## Reflection 1: Single Threaded Web Server
-### 1. Setting Up a TCP Server
+### **1. Setting Up a TCP Server**
 
 To enable communication with a browser, the server must listen for incoming connections. We achieve this using `TcpListener`:
 
@@ -24,11 +24,11 @@ This binds the server to `127.0.0.1` on port `7878`.
 - `println!("Connection established!");`
   - Logs a message when a new connection is received.
 
-### 2. Handling HTTP Requests
+### **2. Handling HTTP Requests**
 
 The function `handle_connection(stream)` processes client requests. Without this, the server merely acknowledges connections without interpreting HTTP requests.
 
-#### Implementation
+#### **Implementation**
 
 ```rust
 fn handle_connection(mut stream: TcpStream) {
@@ -57,7 +57,7 @@ println!("Request: {:#?}", http_request);
 ```
 Outputs the request details in a structured format.
 
-### Example Output
+### **Example Output**
 
 ```powershell
 Request: [
@@ -86,10 +86,10 @@ This output provides details such as the HTTP method (`GET`), requested resource
 ## Reflection 2: Returning HTML
 ![Commit 2 screen capture](/assets/images/commit2.png)
 
-### Sending HTML Response
+### **Sending HTML Response**
 The server is now capable of generating structured HTTP responses with HTML content. Instead of just receiving requests, it now replies with a properly formatted response, including a status line, headers, and HTML content loaded from a file.
 
-### Updated `handle_connection()` Implementation
+### **Updated `handle_connection()` Implementation**
 
 ```rust
 fn handle_connection(mut stream: TcpStream) {
@@ -117,7 +117,7 @@ This function now:
 5. Constructs a complete HTTP response, including the status line, headers, and content.
 6. Sends the response back to the client using `stream.write_all()`.
 
-### HTML Content Example
+### **HTML Content Example**
 
 The `hello.html` file contains:
 
@@ -135,7 +135,7 @@ The `hello.html` file contains:
 </html>
 ```
 
-### Enhancements and Current Limitations
+### **Enhancements and Current Limitations**
 
 At this stage, the server:
 - Produces structured HTTP responses containing a status line, headers, and body.
@@ -190,3 +190,37 @@ The server has reached a functional stage where it can:
 * Load and send HTML files dynamically  
 
 With these enhancements, the server now behaves more like a real web server, paving the way for further improvements in efficiency, error handling, and scalability.
+
+## Reflection 4: Simulation Slow Response
+### **Handling Single-Threaded Server Limitations**  
+
+Our current web server processes requests sequentially since it runs on a **single-thread**. This means each request must complete before the next one is handled. To demonstrate this limitation, we simulate a delayed response by making the server **sleep for 5 seconds** when accessing `/sleep`:  
+
+```rust
+let (status_line, filename) = match &request_line[..] {
+    "GET / HTTP/1.1" => ("HTTP/1.1 200 OK", "hello.html"),
+    "GET /sleep HTTP/1.1" => {
+        thread::sleep(Duration::from_secs(10));
+        ("HTTP/1.1 200 OK", "hello.html")
+    }
+    _ => ("HTTP/1.1 404 NOT FOUND", "404.html"),
+};
+```  
+
+Now, if we request `http://127.0.0.1:7878/sleep`, the server pauses for **10 seconds** before responding. Meanwhile, if we open another tab and request `http://127.0.0.1:7878/`, the request **also gets delayed**, proving that the server can only process one request at a time.  
+
+### **Why Does This Happen?**  
+
+- The server runs on a **single execution thread**, meaning it can only handle **one request at a time**.  
+- When a request like `/sleep` takes longer to process (due to `thread::sleep()`), the server **pauses completely**, preventing any new requests from being handled.  
+- Other requests, even those requiring minimal processing, **must wait** until the ongoing request finishes.  
+
+### **Real-World Impact**  
+
+- In a high-traffic environment, **long-running requests** can cause significant delays for all users.  
+- If multiple users request `/sleep`, the server becomes **unresponsive**, leading to **poor user experience**.  
+- Even simple requests like accessing `/` will suffer unnecessary delays due to the **blocking nature** of the server.  
+
+### **Solution?**  
+
+To make the server **more efficient**, we need to implement **multi-threading** so that multiple requests can be processed **concurrently**, preventing one slow request from affecting others.
