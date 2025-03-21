@@ -59,7 +59,7 @@ Outputs the request details in a structured format.
 
 ### Example Output
 
-```
+```powershell
 Request: [
     "GET / HTTP/1.1",
     "Host: 127.0.0.1:7878",
@@ -77,7 +77,8 @@ Request: [
     "Sec-Fetch-Dest: document",
     "Accept-Encoding: gzip, deflate, br, zstd",
     "Accept-Language: en-US,en;q=0.9,id;q=0.8",
-    "Cookie: csrftoken=mhBtv3yLYLjOKKlYzY2WnvtiPAKGyc5z",]
+    "Cookie: csrftoken=mhBtv3yLYLjOKKlYzY2WnvtiPAKGyc5z",
+]
 ```
 
 This output provides details such as the HTTP method (`GET`), requested resource (`/`), headers, and accepted data formats.
@@ -148,3 +149,44 @@ However, limitations remain:
 - Processes requests sequentially, impacting performance.
 - Does not support routing for serving different content based on request paths.
 
+## Reflection 3: Validating Request and Selectively Responding
+![Commit 2 screen capture](/assets/images/commit3.png)
+
+In this milestone, the web server has been upgraded to validate incoming requests and dynamically serve different content based on the requested path. By implementing selective response handling, the server now distinguishes between valid and invalid routes, delivering appropriate HTML pages along with correct HTTP status codes.  
+
+#### **Key Enhancements**  
+
+- **Refined Request Processing**  
+  The `handle_connection()` function has been updated to extract only the first line of the request (the request line), which includes the HTTP method, path, and version. This optimization eliminates the need to process unnecessary headers.  
+
+- **Efficient Routing Using Pattern Matching**  
+  A `match` expression determines the response by mapping request paths to corresponding status codes and HTML files:  
+  - A request for `/` (`GET / HTTP/1.1`) results in a `200 OK` response, serving `"hello.html"`.  
+  - Any other request returns a `404 NOT FOUND` response, displaying `"404.html"`.  
+
+- **Streamlined Response Generation**  
+  Instead of handling status codes and file names separately, the match statement returns a tuple `(status_line, filename)`, simplifying the response construction. The selected file is read, and an HTTP response is formatted with the appropriate headers before being sent to the client.  
+
+#### **Advantages of Refactoring**  
+
+- **Improved Readability**  
+  The use of `match` makes the routing logic more concise and eliminates the need for verbose `if-else` statements.  
+
+- **Consistency and Safety**  
+  By returning a tuple containing both the status line and filename, the code ensures that related values remain in sync.  
+
+- **Scalability**  
+  Adding new routes becomes simpler since the routing logic is centralized in the `match` block, reducing redundancy.  
+
+- **Immutable Variables**  
+  The use of immutable bindings aligns with Rust’s best practices, enhancing code safety.  
+
+#### **Current Capabilities and Limitations**  
+
+The server has reached a functional stage where it can:  
+* Validate HTTP request formats and extract relevant information  
+* Serve different responses based on request paths  
+* Return appropriate HTTP status codes (`200 OK` and `404 NOT FOUND`)  
+* Load and send HTML files dynamically  
+
+With these enhancements, the server now behaves more like a real web server, paving the way for further improvements in efficiency, error handling, and scalability.
