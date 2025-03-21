@@ -243,3 +243,62 @@ When the server receives a request, the `execute(f)` function is called with a *
 A **Worker** retrieves a task from the **receiver** using `receiver.lock().unwrap().recv().unwrap()`, ensuring that only one **Worker** picks up a task at a time. Once the task is received, the **Worker** executes the closure and then waits for the next task.  
 
 By implementing this system, the **ThreadPool** allows the server to process multiple requests simultaneously without the overhead of constantly creating and destroying threads. This improves efficiency and scalability, as the server no longer needs to wait for one request to complete before handling the next. Additionally, reusing existing threads prevents excessive resource consumption and ensures that the server remains responsive under heavy load. By limiting the number of active threads, the **ThreadPool** also helps prevent server overload when dealing with a high volume of incoming requests.
+
+## Bonus Reflection: Function Improvement.
+In this milestone, I've improved the **ThreadPool** implementation by introducing a `build` function, providing better error handling and flexibility when creating a thread pool. This follows Rust's best practices and enhances reliability.  
+
+#### **Key Enhancements:**  
+
+1. **Error Handling with `Result`**  
+   - `build(size: usize) -> Result<ThreadPool, PoolCreationError>`  
+   - Returns `Result` instead of panicking, allowing graceful error handling  
+
+2. **Custom Error Type**  
+   - Introduces `PoolCreationError` enum to represent failure cases  
+   - Example: `ZeroSize` error for invalid pool sizes  
+
+3. **Safe and Functional Worker Creation**  
+   - Uses `.map().collect()` instead of a manual loop for cleaner code  
+
+4. **Comparison: `new` vs. `build`**  
+   - `new()`: Uses `assert!`, panics on invalid input (for programming errors)  
+   - `build()`: Returns `Result`, allowing failures to be handled explicitly  
+
+#### **Code Changes:**  
+
+**New `build` Function:**  
+```rust
+pub fn build(size: usize) -> Result<ThreadPool, PoolCreationError> {
+    if size == 0 {
+        return Err(PoolCreationError::ZeroSize);
+    }
+
+    let (sender, receiver) = mpsc::channel();
+    let receiver = Arc::new(Mutex::new(receiver));
+    let workers = (0..size)
+         .map(|id| Worker::new(id, Arc::clone(&receiver)))
+         .collect::<Vec<Worker>>();
+
+    Ok(ThreadPool { workers, sender })
+}
+```
+
+**Updated `main.rs` Usage:**  
+```rust
+let pool = ThreadPool::build(4).expect("Failed to create ThreadPool!");
+```
+
+**New Error Type:**  
+```rust
+#[derive(Debug)]
+pub enum PoolCreationError {
+    ZeroSize,
+}
+```
+
+#### **Final Improvements:**  
+- Implements Rust’s `Result`-based error handling  
+- Prevents unnecessary panics with structured failure cases  
+- Maintains efficient multi-threading while adding robustness  
+
+This approach provides a safer, more scalable way to manage **ThreadPool** initialization, ensuring errors can be handled gracefully without sacrificing performance.
